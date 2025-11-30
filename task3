@@ -1,0 +1,68 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from collections import Counter
+import string
+
+# --- ВБУДОВАНІ ДАНІ ---
+
+# 1. Токенізований текст (Аліса в Країні Чудес, початок)
+# Створено на основі alice_words.txt, нижній регістр, без NLTK
+ALICE_WORDS = ['alice', 'was', 'beginning', 'to', 'get', 'very', 'tired', 'of', 'sitting', 'by', 'her', 'sister', 'on', 'the', 'bank', 'and', 'of', 'having', 'nothing', 'to', 'do', 'once', 'or', 'twice', 'she', 'had', 'peeped', 'into', 'the', 'book', 'her', 'sister', 'was', 'reading', 'but', 'it', 'had', 'no', 'pictures', 'or', 'conversations', 'in', 'it', 'and', 'what', 'is', 'the', 'use', 'of', 'a', 'book', 'thought', 'alice', 'without', 'pictures', 'or', 'conversation', 'so', 'she', 'was', 'considering', 'in', 'her', 'own', 'mind', 'as', 'well', 'as', 'she', 'could', 'for', 'the', 'hot', 'day', 'made', 'her', 'feel', 'very', 'sleepy', 'and', 'stupid', 'whether', 'the', 'pleasure', 'of', 'making', 'a', 'daisy', 'chain', 'would', 'be', 'worth', 'the', 'trouble', 'of', 'getting', 'up', 'and', 'picking', 'the', 'daisies', 'when', 'suddenly', 'a', 'white', 'rabbit', 'with', 'pink', 'eyes', 'ran', 'close', 'by', 'her', 'there', 'was', 'nothing', 'so', 'very', 'remarkable', 'in', 'that', 'nor', 'did', 'alice', 'think', 'it', 'so', 'very', 'much', 'out', 'of', 'the', 'way', 'to', 'hear', 'the', 'rabbit', 'say', 'to', 'itself', 'oh', 'dear', 'oh', 'dear', 'i', 'shall', 'be', 'late', 'when', 'she', 'thought', 'it', 'over', 'afterwards', 'it', 'occurred', 'to', 'her', 'that', 'she', 'ought', 'to', 'have', 'wondered', 'at', 'this', 'but', 'at', 'the', 'time', 'it', 'all', 'seemed', 'quite', 'natural', 'but', 'when', 'the', 'rabbit', 'actually', 'took', 'a', 'watch', 'out', 'of', 'its', 'waistcoat', 'pocket', 'and', 'looked', 'at', 'it', 'and', 'then', 'hurried', 'on', 'alice', 'started', 'to', 'her', 'feet', 'for', 'it', 'flashed', 'across', 'her', 'mind', 'that', 'she', 'had', 'never', 'before', 'seen', 'a', 'rabbit', 'with', 'either', 'a', 'waistcoat', 'pocket', 'or', 'a', 'watch', 'to', 'take', 'out', 'of', 'it', 'and', 'burning', 'with', 'curiosity', 'she', 'ran', 'across', 'the', 'field', 'after', 'it', 'and', 'fortunately', 'was', 'just', 'in', 'time', 'to', 'see', 'it', 'pop', 'down', 'a', 'large', 'rabbit', 'hole', 'under', 'the', 'hedge', 'in', 'another', 'moment', 'down', 'went', 'alice', 'after', 'it', 'never', 'once', 'considering', 'how', 'in', 'the', 'world', 'she', 'was', 'to', 'get', 'out', 'again']
+words_with_punctuation = ALICE_WORDS # Токенізований список слів
+
+# 2. Стандартний список англійських стоп-слів (Manual NLTK stopwords list)
+ENGLISH_STOPWORDS = {
+    'i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', "you're", "you've", "you'll", "you'd", 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', "she's", 'her', 'hers', 'herself', 'it', "it's", 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', "that'll", 'these', 'those', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', "don't", 'should', "should've", 'now', 'd', 'll', 'm', 'o', 're', 've', 'y', 'ain', 'aren', "aren't", 'couldn', "couldn't", 'didn', "didn't", 'doesn', "doesn't", 'hadn', "hadn't", 'hasn', "hasn't", 'haven', "haven't", 'isn', "isn't", 'ma', 'mightn', "mightn't", 'mustn', "mustn't", 'needn', "needn't", 'shan', "shan't", 'shouldn', "shouldn't", 'wasn', "wasn't", 'weren', "weren't", 'won', "won't", 'wouldn', "wouldn't"
+}
+
+# --- АНАЛІЗ ---
+
+print("--- АНАЛІЗ ТЕКСТУ 'АЛІСА В КРАЇНІ ЧУДЕС' (ВБУДОВАНІ ДАНІ) ---")
+
+# 1. Загальна кількість слів
+total_words = len(words_with_punctuation)
+print(f"\n[1] Загальна кількість слів у тексті (фрагмент): {total_words:,}")
+
+# 2. Топ-10 слів (НЕОЧИЩЕНІ ДАНІ)
+fdist_raw = Counter(words_with_punctuation)
+top_10_raw = fdist_raw.most_common(10)
+
+print("\n[2] ТОП-10 слів (Неочищені дані):")
+print(pd.DataFrame(top_10_raw, columns=['Слово', 'Частота']).to_string(index=False))
+
+# Побудова діаграми (Неочищені дані)
+plt.figure(figsize=(10, 5))
+words_raw = [item[0] for item in top_10_raw]
+counts_raw = [item[1] for item in top_10_raw]
+plt.bar(words_raw, counts_raw, color='skyblue')
+plt.title('ТОП-10 слів (Неочищені дані) у "Алісі в Країні Чудес"')
+plt.xlabel('Слово')
+plt.ylabel('Частота')
+plt.show()
+
+# 3. Очищення тексту та новий аналіз
+punctuation = set(string.punctuation)
+
+# Фільтрація: видаляємо стоп-слова, пунктуацію та слова з однієї літери
+filtered_words = [
+    word for word in words_with_punctuation
+    if word not in ENGLISH_STOPWORDS # Використовуємо вбудований список
+    and word not in punctuation
+    and len(word) > 1
+]
+
+fdist_clean = Counter(filtered_words)
+top_10_clean = fdist_clean.most_common(10)
+
+print("\n[3] ТОП-10 слів (ОЧИЩЕНІ від стоп-слів та пунктуації):")
+print(pd.DataFrame(top_10_clean, columns=['Слово', 'Частота']).to_string(index=False))
+
+# Побудова діаграми (Очищені дані)
+plt.figure(figsize=(10, 5))
+words_clean = [item[0] for item in top_10_clean]
+counts_clean = [item[1] for item in top_10_clean]
+plt.bar(words_clean, counts_clean, color='teal')
+plt.title('ТОП-10 слів (Очищені дані) у "Алісі в Країні Чудес"')
+plt.xlabel('Слово')
+plt.ylabel('Частота')
+plt.show()
