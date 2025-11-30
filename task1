@@ -1,0 +1,35 @@
+import pandas as pd
+
+products = {
+    "Товар": ["Ноутбук", "Смартфон", "Телевізор", "Планшет", "Навушники"],
+    "Категорія": ["Електроніка", "Електроніка", "Електроніка", "Електроніка", "Аудіо"],
+    "Ціна": [35000, 18000, 25000, 12000, 4000],
+    "Кількість": [3, 5, 2, 4, 10],
+    "Бренд": ["Dell", "Samsung", "LG", "Lenovo", "Sony"]
+}
+
+df = pd.DataFrame(products)
+
+print(df, "\n")
+print(df.head(3), "\n")
+print(df.dtypes, "\n")
+print(df.shape, "\n")
+print(df.describe(), "\n")
+
+df["Сума_продажу"] = df["Ціна"] * df["Кількість"]
+print(df, "\n")
+
+filtered = df[df["Ціна"] > 10000]
+print(filtered, "\n")
+
+sorted_df = df.sort_values(by="Ціна", ascending=False)
+print(sorted_df, "\n")
+
+grouped = df.groupby("Категорія")["Сума_продажу"].mean()
+print(grouped, "\n")
+
+max_sales = df.groupby("Категорія")["Сума_продажу"].max()
+print(max_sales, "\n")
+
+unique_products = df["Товар"].nunique()
+print(unique_products)
