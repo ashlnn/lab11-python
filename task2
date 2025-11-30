@@ -1,0 +1,55 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+plt.style.use('ggplot')
+plt.rcParams['figure.figsize'] = (15, 6)
+
+
+data = {
+    'Date': ['01/01/2009', '02/01/2009', '03/01/2009', '04/01/2009', '05/01/2009', '06/01/2009', '07/01/2009', '08/01/2009', '09/01/2009', '10/01/2009'],
+    'berri1': [29, 19, 24, 24, 120, 261, 60, 24, 35, 81],
+    'maisonneuve_1': [20, 3, 12, 8, 111, 146, 33, 14, 20, 45],
+    'maisonneuve_2': [35, 22, 22, 15, 141, 236, 80, 14, 32, 79],
+    'brebeuf': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] # У перших рядках файлу там були пропущені значення (NaN), замінені на 0
+}
+
+df = pd.DataFrame(data)
+
+# Попередня обробка:
+df['Date'] = pd.to_datetime(df['Date'], dayfirst=True)
+df = df.set_index('Date')
+df = df.astype(int)
+
+# --- АНАЛІЗ ---
+
+print("--- ОСНОВНІ ХАРАКТЕРИСТИКИ ДАТАФРЕЙМУ (10 днів) ---")
+print(df.head())
+print("\n")
+df.info()
+print("\n")
+print(df.describe())
+
+print("\n" + "="*70)
+print("--- ЗАГАЛЬНА КІЛЬКІСТЬ ВЕЛОСИПЕДИСТІВ ---")
+total_cyclists_all = df.sum().sum()
+print(f"Загальна кількість за 10 днів: {total_cyclists_all:,}")
+
+print("\n" + "="*70)
+print("--- КІЛЬКІСТЬ ВЕЛОСИПЕДИСТІВ НА КОЖНІЙ ДОРІЖЦІ ---")
+total_by_path = df.sum().sort_values(ascending=False)
+print(total_by_path.to_string())
+
+plt.figure(figsize=(10, 5))
+total_by_path.plot(kind='bar', color=['darkblue', 'skyblue', 'teal', 'navy'])
+plt.title('Кількість велосипедистів за 10 днів на кожній велодоріжці')
+plt.ylabel('Кількість')
+plt.xticks(rotation=0)
+plt.show()
+
+
+print("\n" + "="*70)
+print("--- МІСЯЧНА АКТИВНІСТЬ (структура) ---")
+monthly_counts = df.groupby(df.index.to_period('M')).sum()
+monthly_counts.index = monthly_counts.index.strftime('%Y-%m')
+print("Усі записи припадають на 2009-01.")
+
